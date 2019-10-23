@@ -40,21 +40,27 @@ fetch('http://localhost:43000/graph')
       .scaleSequential(d3.interpolateOranges)
       .domain([minHeat, maxHeat])
 
-    let data = { nodes: [], edges: [] }
+    const heatValuesMap = heatsArr.reduce((accumu, cur) => {
+      accumu[`${cur.number}_${cur.alter}`] = { heat: cur.heat, sql: cur.sql }
+      return accumu
+    }, {})
+    console.log(heatValuesMap)
 
-    /*let node = [{
-    id: "0",
-    label: "0",
-    cluster: "a",
-    description: 'This is node-3.',
-    style: {
-      lineWidth: 2,
-      fill: 'red'
-    }}]
-    edges: [{
-              source: "0",
-              target: "1"
-          }
+    let data = { nodes: [], edges: [] }
+    /*
+    let node = [{
+      id: "0",
+      label: "0",
+      cluster: "a",
+      description: 'This is node-3.',
+      style: {
+        lineWidth: 2,
+        fill: 'red'
+    }}],
+    edges = [{
+      source: "0",
+      target: "1"
+    }]
     */
     /*node*/
     if (graphs.length !== 0) {
@@ -63,7 +69,7 @@ fetch('http://localhost:43000/graph')
       for (let item of graphs) {
         let node = {}
 
-        node.id = item.number + ''
+        node.id = `${item.number}`
         node.label = item.head
         node.shape = 'circle'
         node.x = x
@@ -76,7 +82,7 @@ fetch('http://localhost:43000/graph')
         if (item.alter && item.alter.length) {
           for (let i = 0; i < item.alter.length; i++) {
             let subNode = {}
-            subNode.id = node.id + i
+            subNode.id = `${node.id}_${i}`
             subNode.label = item.alter[i].content
             subNode.x = x
             subNode.y = y
@@ -86,28 +92,33 @@ fetch('http://localhost:43000/graph')
 
             let fanout = item.alter[i].fanout
             for (let item of fanout) {
-              data.edges.push({ source: subNode.id, target: item + '' })
+              data.edges.push({ source: subNode.id, target: `${item}` })
             }
           }
           y = window.innerHeight / 2
         }
       }
     }
+    console.log(data)
 
     /*heat*/
     if (heatsArr.length !== 0) {
-      // debugger
-      for (let i = 0; i < data.nodes.length && heatsArr.length > 0; i++) {
-        if (data.nodes[i].id !== heatsArr[0].number + '') {
-          data.nodes[i] = {
-            ...data.nodes[i],
-            description: heatsArr[0].sql,
-            style: { lineWidth: 2, fill: colorScale(heatsArr[0].heat) }
+      data.nodes = data.nodes.map(node => {
+        if (heatValuesMap[node.id] !== undefined) {
+          const heatValue = heatValuesMap[node.id]
+          return {
+            ...node,
+            description: heatValue.sql,
+            style: {
+              lineWidth: 2,
+              fill: colorScale(heatValue.heat)
+            }
           }
-          heatsArr.shift()
         }
-      }
+        return node
+      })
     }
+    console.log(data)
 
     /*pic*/
     const graph = new G6.Graph({
