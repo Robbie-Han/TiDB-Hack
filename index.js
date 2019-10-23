@@ -46,6 +46,21 @@ fetch('http://localhost:43000/graph')
     const colorScale = d3
       .scaleSequential(d3.interpolateOranges)
       .domain([minHeat, maxHeat])
+    const areaScale = d3
+      .scaleLinear()
+      .range([20, 40])
+      .domain([minHeat, maxHeat])
+    // console.log(areaScale(30)) // 40
+    // console.log(areaScale(100)) // 91.8
+
+    // const myColor = d3
+    //   .scaleLinear()
+    //   .domain([1, 10])
+    //   .range(['white', 'blue'])
+    // console.log(myColor(1)) // 'white'
+    // console.log(myColor(5)) // rgb(142, 142, 255)
+    // console.log(myColor(10)) // 'blue'
+    // console.log(myColor(15)) // 'blue'
 
     const heatValuesMap = heatsArr.reduce((accumu, cur) => {
       accumu[`${cur.number}_${cur.alter}`] = { heat: cur.heat, sql: cur.sql }
@@ -121,7 +136,8 @@ fetch('http://localhost:43000/graph')
             style: {
               lineWidth: 2,
               fill: colorScale(heatValue.heat)
-            }
+            },
+            size: [areaScale(heatValue.heat), areaScale(heatValue.heat)]
           }
         }
         return node
