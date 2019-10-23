@@ -1,3 +1,10 @@
+function ellipseContent(content) {
+  if (content.length > 14) {
+    return content.slice(0, 12) + '..'
+  }
+  return content
+}
+
 fetch('http://localhost:43000/graph')
   .then(function(response) {
     return response.json()
@@ -70,7 +77,8 @@ fetch('http://localhost:43000/graph')
         let node = {}
 
         node.id = `${item.number}`
-        node.label = item.head
+        node.description = 'label: ' + item.head
+        node.label = ellipseContent(item.head)
         node.shape = 'circle'
         node.x = x
         node.y = y
@@ -83,7 +91,8 @@ fetch('http://localhost:43000/graph')
           for (let i = 0; i < item.alter.length; i++) {
             let subNode = {}
             subNode.id = `${node.id}_${i}`
-            subNode.label = item.alter[i].content
+            subNode.description = 'label: ' + item.alter[i].content
+            subNode.label = ellipseContent(item.alter[i].content)
             subNode.x = x
             subNode.y = y
             data.nodes.push(subNode)
@@ -108,7 +117,7 @@ fetch('http://localhost:43000/graph')
           const heatValue = heatValuesMap[node.id]
           return {
             ...node,
-            description: heatValue.sql,
+            description: `${node.description}<br>sql: ${heatValue.sql}<br>heat: ${heatValue.heat}`,
             style: {
               lineWidth: 2,
               fill: colorScale(heatValue.heat)
@@ -148,10 +157,8 @@ fetch('http://localhost:43000/graph')
           {
             type: 'tooltip',
             formatText: function formatText(model) {
-              const text = 'description: ' + model.description
-              return text
+              return model.description
             },
-
             shouldUpdate: function shouldUpdate(e) {
               return true
             }
