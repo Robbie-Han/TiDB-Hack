@@ -5,7 +5,7 @@ fetch('http://localhost:43000/graph')
   .then(function(graphs) {
     console.log(graphs)
 
-    const heat = [
+    const heatsArr = [
       {
         number: 0, // 对应节点的编号
         alter: 0, // 对应分支的编号(即之前传的alter数组的下标)
@@ -31,6 +31,14 @@ fetch('http://localhost:43000/graph')
         sql: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       }
     ]
+
+    // https://bl.ocks.org/pstuffa/d5934843ee3a7d2cc8406de64e6e4ea5
+    const heatValuesSet = heatsArr.map(h => h.heat)
+    const minHeat = d3.min(heatValuesSet)
+    const maxHeat = d3.max(heatValuesSet)
+    const colorScale = d3
+      .scaleSequential(d3.interpolateOranges)
+      .domain([minHeat, maxHeat])
 
     let data = { nodes: [], edges: [] }
 
@@ -87,16 +95,16 @@ fetch('http://localhost:43000/graph')
     }
 
     /*heat*/
-    if (heat.length !== 0) {
+    if (heatsArr.length !== 0) {
       // debugger
-      for (let i = 0; i < data.nodes.length && heat.length > 0; i++) {
-        if (data.nodes[i].id !== heat[0].number + '') {
+      for (let i = 0; i < data.nodes.length && heatsArr.length > 0; i++) {
+        if (data.nodes[i].id !== heatsArr[0].number + '') {
           data.nodes[i] = {
             ...data.nodes[i],
-            description: heat[0].sql,
-            style: { lineWidth: 2, fill: 'rgb(' + heat[0].heat + ', 180, 180)' }
+            description: heatsArr[0].sql,
+            style: { lineWidth: 2, fill: colorScale(heatsArr[0].heat) }
           }
-          heat.shift()
+          heatsArr.shift()
         }
       }
     }
